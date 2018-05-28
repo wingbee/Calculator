@@ -1,11 +1,11 @@
 ﻿using System;
 namespace Calculator
 {
-	public enum Operator
+	public enum Operation
 	{
 		PLUS = '+', 
 		MINUS = '-', 
 		MULTIPLY = '*', 
-		DIVIDE = '/'
+		DIVIDE = '/',
 	}
 }

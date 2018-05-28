@@ -5,10 +5,7 @@ using System.Linq;
 namespace Calculator
 {
 	public class Expression : ExpressionBase
-	{
-		private List<Term> _terms;
-		private List<Operator> _termSeparators;
-		
+	{		
 		//Characteristics
 		public Expression(string expressionString) : base(expressionString)
 		{
@@ -18,8 +15,6 @@ namespace Calculator
 		{
 			try
 			{
-				_terms = new List<Term>();
-				_termSeparators = new List<Operator>();
 				return Evaluate(string.Copy(ExpressionString));
 			}
 			catch (Exception ex)
@@ -30,31 +25,33 @@ namespace Calculator
 
 		private double Evaluate(string unparsedExpressionString)
 		{
-			ParseTermsAndTermSeparators(unparsedExpressionString);
+			double result = 0;
+			
+			Term term = ParseLeftmostTerm(ref unparsedExpressionString);
+			result = term.Evaluate();
 
-			if (_terms.Count == 1)
+			while (!string.IsNullOrEmpty(unparsedExpressionString))
 			{
-				return EvaluateTerm();
-			}
-			else
-			{
-				return EvaluateTerms();
-			}
-		}
+				Operation operation = ParseLeftmostOperator(unparsedExpressionString);
+				term = ParseLeftmostTerm(ref unparsedExpressionString);
 
-		private void ParseTermsAndTermSeparators(string unparsedExpressionString)
-		{
-			unparsedExpressionString = ParseLeftmostTerm(unparsedExpressionString);
-
-			if (!string.IsNullOrEmpty(unparsedExpressionString))
-			{
-				unparsedExpressionString = ParseTermSeparatorOperation(unparsedExpressionString);
-				ParseTermsAndTermSeparators(unparsedExpressionString);
+				if (operation == Operation.PLUS)
+				{
+					result += term.Evaluate();
+				}
+				else
+				{
+					result -= term.Evaluate();
+				}
 			}
+
+			return result;
 		}
 		
-		private string ParseLeftmostTerm(string unparsedExpressionString)
+		private Term ParseLeftmostTerm(ref string unparsedExpressionString)
 		{
+			Term term = null;
+			
 			//Search for first term
 			int index = 1;
 			while (index < unparsedExpressionString.Length)
@@ -62,20 +59,24 @@ namespace Calculator
 				string searchString = unparsedExpressionString.Substring(0, index + 1);
 
 				if (IsTermSeperator(searchString, index))
-				{
-					_terms.Add(
+				{		
+					term = 
 						new Term(
-							unparsedExpressionString.Substring(0, index)));
+							unparsedExpressionString.Substring(0, index));
 
-					return unparsedExpressionString.Skip(index).ToString();
+					unparsedExpressionString =
+						unparsedExpressionString.Skip(index).ToString();
+
+					return term;
 				}
 
 				index++;
 			}
 
 			//No term seperator found, expressionString contains single term
-			_terms.Add(new Term(unparsedExpressionString));			
-			return string.Empty;
+			term = new Term(unparsedExpressionString);
+			unparsedExpressionString = string.Empty;
+			return term;
 		}
 
 		private bool IsTermSeperator(string searchString, int index)
@@ -103,49 +104,25 @@ namespace Calculator
 				searchString.Count(s => s == BRACKET_CLOSE);
 		}
 			    
-		private string ParseTermSeparatorOperation(string unparsedExpressionString)
+		private Operation ParseLeftmostOperator(string unparsedExpressionString)
 		{
 			char potentialOperator = unparsedExpressionString[0];
 
 			if (IsTermSeparatorSymbol(potentialOperator))
 			{
-				_termSeparators.Add(
-					(Operator)Enum.Parse(
-						typeof(Operator), 
-						potentialOperator.ToString()));
+				Operation operation = 
+					(Operation)Enum.Parse(
+						typeof(Operation), 
+					potentialOperator.ToString());
+
+				unparsedExpressionString.Skip(1).ToString();
+				
+				return operation;
 			}
 			else
 			{
 				throw new Exception($"Plus or minus operator excepted, found: {potentialOperator}");
 			}
-
-			return unparsedExpressionString.Skip(1).ToString();
-		}
-
-		private double EvaluateTerm()
-		{
-			return _terms.First().Evaluate();
-		}
-		
-		private double EvaluateTerms()
-		{
-			double result = _terms.First().Evaluate();
-
-			for (int i = 0; i < _termSeparators.Count; i++)
-			{
-				double termValue = _terms[i + 1].Evaluate();
-				
-				if (_termSeparators[i] == Operator.PLUS)
-				{
-					result += termValue;
-				}
-				else
-				{
-					result -= termValue;
-				}
-			}
-
-			return result;
 		}
 	}
 }

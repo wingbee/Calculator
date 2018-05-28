@@ -46,7 +46,7 @@
     <Compile Include="BracketExpression.cs" />
     <Compile Include="CalculatorEngineTests.cs" />
     <Compile Include="ExpressionBase.cs" />
-    <Compile Include="Operator.cs" />
+    <Compile Include="Operation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -17,12 +17,12 @@ namespace Calculator
 		[Test]
 		public void Tests()
 		{
-			//AssertEvaluation(1, 	"1");
-			//AssertEvaluation(-1, 	"-1");
-			//AssertEvaluation(1, 	"(1)");
-			//AssertEvaluation(1, 	"((1))");
-			//AssertEvaluation(-1, 	"(-1)");
-			AssertEvaluation(-1, 	"-(1)");
+			AssertEvaluation(1, 	"1");
+			AssertEvaluation(-1, 	"-1");
+			AssertEvaluation(1, 	"(1)");
+			AssertEvaluation(1, 	"((1))");
+			AssertEvaluation(-1, 	"(-1)");
+			//AssertEvaluation(-1, 	"-(1)");
 			//AssertEvaluation(1, 	"-(-1)");
 			//AssertEvaluation(-1, 	"((-1))");
 			//AssertEvaluation(1, 	"-((-1))");
