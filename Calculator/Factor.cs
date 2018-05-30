@@ -1,10 +1,18 @@
 ﻿using System;
 namespace Calculator
 {
-	public class Factor
+	public class Factor : Expression
 	{
-		public Factor()
+		public Factor(string expressionString) : base(expressionString)
 		{
 		}
+
+	    public override double Evaluate()
+	    {
+	        if (ExpressionString == MINUS.ToString())
+	        {
+	            return -1;
+	        }
+	    }
 	}
 }

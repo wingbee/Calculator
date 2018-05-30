@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 
 namespace Calculator
 {
@@ -32,21 +33,21 @@ namespace Calculator
 		{
 			double result = 0;
 
-			Factor term = ParseLeftmostFactor(ref unparsedExpressionString);
-			result = term.Evaluate();
+			Factor factor = ParseLeftmostFactor(ref unparsedExpressionString);
+			result = factor.Evaluate();
 
 			while (!string.IsNullOrEmpty(unparsedExpressionString))
 			{
 				Operation operation = ParseLeftmostOperator(unparsedExpressionString);
-				term = ParseLeftmostTerm(ref unparsedExpressionString);
+			    factor = ParseLeftmostFactor(ref unparsedExpressionString);
 
-				if (operation == Operation.PLUS)
+				if (operation == Operation.MULTIPLY)
 				{
-					result += term.Evaluate();
+					result += factor.Evaluate();
 				}
 				else
 				{
-					result -= term.Evaluate();
+					result /= factor.Evaluate();
 				}
 			}
 
@@ -55,70 +56,85 @@ namespace Calculator
 
 		private Factor ParseLeftmostFactor(ref string unparsedExpressionString)
 		{
-			Term term = null;
+		    Factor factor = null;
 
-			//Search for first term
-			int index = 1;
-			while (index < unparsedExpressionString.Length)
-			{
-				string searchString = unparsedExpressionString.Substring(0, index + 1);
+		    char leftMostChar = unparsedExpressionString[0];
 
-				if (IsTermSeperator(searchString, index))
-				{
-					term =
-						new Term(
-							unparsedExpressionString.Substring(0, index));
+		    if (leftMostChar == MINUS)
+		    {
+		        return ParseLeftMostMinusSign(ref unparsedExpressionString);
+		    }
+		    else if (leftMostChar == BRACKET_OPEN)
+		    {
+		        return ParseLeftmostBracketedFactor(ref unparsedExpressionString);
+		    }
+		    else if (IsDigit(leftMostChar))
+		    {
+		        return ParseLeftmostNumber(ref unparsedExpressionString);
+		    }
+		    else
+		    {
+		        throw new Exception($"Unable to parse factor beginning with {leftMostChar}");
+		    }
+        }
 
-					unparsedExpressionString =
-						unparsedExpressionString.Skip(index).ToString();
+	    private Factor ParseLeftMostMinusSign(ref string unparsedExpressionString)
+	    {	        
+	        Factor factor = new Factor(MINUS.ToString());
 
-					return term;
-				}
+	        unparsedExpressionString = 
+	            unparsedExpressionString.Skip(1).ToString();
 
-				index++;
-			}
+	        return factor;
+	    }
 
-			//No term seperator found, expressionString contains single term
-			term = new Term(unparsedExpressionString);
-			unparsedExpressionString = string.Empty;
-			return term;
-		}
+	    private Factor ParseLeftmostBracketedFactor(ref string unparsedExpressionString)
+	    {
+	        int indexBracketClose =
+	            unparsedExpressionString.IndexOf(
+	                BRACKET_CLOSE.ToString());
 
-		private bool IsTermSeperator(string searchString, int index)
-		{
-			//A valid term seperator must satisfy the following rules:
-			//   - must a '+' or '-'
-			//   - must be on bracket level 0, i.e. not nested inside one or more levels of bracket
-			//   - must be preceded by a ')' or a digit
-			char currentChar = searchString[index];
-			char previousChar = searchString[index - 1];
+            Factor factor = 
+                new Factor(
+                    unparsedExpressionString.Substring(0, indexBracketClose + 1));
 
-			return
-				IsTermSeparatorSymbol(currentChar) &&
-				GetBracketLevel(searchString) == 0 &&
-				(
-					previousChar == BRACKET_CLOSE ||
-					IsDigit(previousChar)
-				);
-		}
+	        if (indexBracketClose == unparsedExpressionString.Length - 1)
+	        {
+	            unparsedExpressionString = string.Empty;
+	        }
+	        else
+	        {
+	            unparsedExpressionString = 
+                    unparsedExpressionString.Substring(indexBracketClose + 1);
+            }
 
-		private int GetBracketLevel(string searchString)
-		{
-			return
-				searchString.Count(s => s == BRACKET_OPEN) -
-				searchString.Count(s => s == BRACKET_CLOSE);
-		}
+	        return factor;
+	    }
+
+	    private Factor ParseLeftmostNumber(ref string unparsedExpressionString)
+	    {
+	        int index = 0;
+	        bool endOfNumberFound = false;
+	        int lengthOfNumber = unparsedExpressionString.Length;
+
+	        while (!endOfNumberFound && index < unparsedExpressionString.Length)
+	        {
+
+	        }
+
+
+	    }
 
 		private Operation ParseLeftmostOperator(string unparsedExpressionString)
 		{
 			char potentialOperator = unparsedExpressionString[0];
 
-			if (IsTermSeparatorSymbol(potentialOperator))
+			if (IsFactorSeparatorSymbol(potentialOperator))
 			{
 				Operation operation =
 					(Operation)Enum.Parse(
 						typeof(Operation),
-					potentialOperator.ToString());
+					    potentialOperator.ToString());
 
 				unparsedExpressionString.Skip(1).ToString();
 
@@ -126,7 +142,8 @@ namespace Calculator
 			}
 			else
 			{
-				throw new Exception($"Plus or minus operator excepted, found: {potentialOperator}");
+				//Implicit multiplication
+			    return Operation.MULTIPLY;
 			}
 		}
 	}

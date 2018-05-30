@@ -1,0 +1,2 @@
+C:\Git\Calculator\Calculator\obj\x86\Debug\Calculator.csprojResolveAssemblyReference.cache
+C:\Git\Calculator\Calculator\obj\x86\Debug\Calculator.csproj.CoreCompileInputs.cache

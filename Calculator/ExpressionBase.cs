@@ -13,8 +13,10 @@ namespace Calculator
 
 		public const char BRACKET_OPEN = '(';
 		public const char BRACKET_CLOSE = ')';
-		
-		public virtual string ExpressionString { get; private set; }
+
+	    public const char DECIMAL_POINT = '.';
+
+        public virtual string ExpressionString { get; private set; }
 		
 		public ExpressionBase(string expressionString)
 		{
